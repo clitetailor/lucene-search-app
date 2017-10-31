@@ -1,4 +1,4 @@
-package mypackage.main;
+package mypackage.main.stuff;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
