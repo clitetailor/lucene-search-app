@@ -1,5 +1,6 @@
 package mypackage.main;
 
+import mypackage.main.lucene.SearchSuggester;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
@@ -22,15 +23,15 @@ public class LuceneApp {
 
     private IndexWriter indexWriter;
     private ReferenceManager<IndexSearcher> searcherManager;
+    private SearchSuggester suggester;
 
     public LuceneApp() {
         this("./index");
     }
 
     public LuceneApp(String dir) {
-        this.indexPath = FileSystems.getDefault().getPath(dir);
+        indexPath = FileSystems.getDefault().getPath(dir);
     }
-
 
     /**
      *  Initialize Lucene App.
@@ -40,36 +41,28 @@ public class LuceneApp {
         searcherManager = new SearcherManager(indexWriter, null);
     }
 
-
+    /**
+     *  Try to open directory for writting index
+     */
     private void openIndexForWritting(IndexWriterConfig.OpenMode openMode) throws IOException {
-        /**
-         *  Try to open directory for writting index
-         */
+        // Open directory for writting index.
         Directory directory = FSDirectory.open(indexPath);
+        suggester = new SearchSuggester(directory);
 
-        /**  Create a new standard tokenizer.  **/
         StandardAnalyzer analyzer = new StandardAnalyzer();
         IndexWriterConfig config = new IndexWriterConfig(analyzer);
 
-        /**  Set index writter mode.  **/
         config.setOpenMode(openMode);
 
-        /**
-         *  Create a new index writter.
-         */
+        // Create a new index writter.
         indexWriter = new IndexWriter(directory, config);
     }
 
 
     public ArrayList<Document> search(String searchString) throws IOException, ParseException {
-        /**
-         *  Acquire index searcher from searh manager.
-         */
+        // Acquire a new index searcher.
         IndexSearcher indexSearcher = searcherManager.acquire();
 
-        /**
-         *  Create a new standard analyzer for search query.
-         */
         Analyzer analyzer = new StandardAnalyzer();
         QueryParser queryParser = new QueryParser(
                 Version.LUCENE_7_1_0,
@@ -77,23 +70,13 @@ public class LuceneApp {
                 analyzer
         );
 
-        /**
-         *  Search from search string and return top docs.
-         */
         TopDocs topDocs = indexSearcher.search(queryParser.parse(searchString), 20);
 
-        /**
-         *  Release index searcher.
-         */
+        // Remember to release searcher after searching.
         searcherManager.release(indexSearcher);
 
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-
-        /**
-         *  Map from Score Doc to Documents
-         */
         ArrayList<Document> docs = new ArrayList<>();
-
         for (ScoreDoc scoreDoc : scoreDocs) {
             docs.add(
                     indexSearcher.doc(scoreDoc.doc)
@@ -102,14 +85,23 @@ public class LuceneApp {
         return docs;
     }
 
-
     /**
      *  Index a list of documents.
      */
     public void addDocuments(ArrayList<Document> documents) throws IOException {
         indexWriter.addDocuments(documents);
+
+        for (Document document : documents) {
+            suggester.add(document.getField("title").toString());
+        }
     }
 
+    /**
+     *  Give a suggestion for the given search string.
+     */
+    public ArrayList<String> suggest(String suggestString) {
+        return suggester.suggest(suggestString);
+    }
 
     /**
      *  Commit pending index documents.
@@ -118,7 +110,6 @@ public class LuceneApp {
      public void commitWritting() throws IOException {
          indexWriter.commit();
      }
-
 
     /**
      *  Try to close index writter and search manager

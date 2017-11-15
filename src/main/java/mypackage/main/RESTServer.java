@@ -1,9 +1,13 @@
 package mypackage.main;
 
+import mypackage.main.logger.ExceptionLogger;
 import org.apache.lucene.document.Document;
 import spark.Spark;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RESTServer {
     /**
@@ -19,6 +23,20 @@ public class RESTServer {
             ExceptionLogger.logException(e);
             return;
         }
+
+        int waitToCommitDuration = 60 * 60 * 1000;
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    luceneApp.commitWritting();
+                } catch (IOException e) {
+                    ExceptionLogger.logException(e);
+                }
+            }
+        }, waitToCommitDuration);
 
         Spark.port(9090);
         Spark.initExceptionHandler(e -> ExceptionLogger.logException(e));
@@ -52,10 +70,24 @@ public class RESTServer {
         });
 
 
+        /**  Show search suggestions  **/
+        Spark.get("/suggest/:suggest-string", (req, res) -> {
+            String suggest = req.params("suggest-string");
+
+            ArrayList<String> suggestions = luceneApp.suggest(suggest);
+
+            return DataExtractor.toResponseSuggestions(suggestions);
+        });
+
+
         /**  Send stop signal to server.  **/
         Spark.options("/stop", (req, res) -> {
-            Spark.stop();
+            // Try to commit before closing the app.
+            luceneApp.commitWritting();
             luceneApp.close();
+
+            // Stop the server.
+            Spark.stop();
             return "Server has stopped!";
         });
     }

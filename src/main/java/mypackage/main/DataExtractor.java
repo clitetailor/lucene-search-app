@@ -40,4 +40,10 @@ public class DataExtractor {
 
         return mapper.writeValueAsString(sites);
     }
+
+    public static String toResponseSuggestions(ArrayList<String> suggestions) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        return mapper.writeValueAsString(suggestions);
+    }
 }

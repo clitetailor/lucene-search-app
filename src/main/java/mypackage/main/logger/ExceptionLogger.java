@@ -1,7 +1,7 @@
-package mypackage.main;
+package mypackage.main.logger;
 
 public class ExceptionLogger {
-    static void logException(Exception e) {
+    public static void logException(Exception e) {
         System.out.println(e.getClass() + " : " + e.getMessage());
     }
 }
