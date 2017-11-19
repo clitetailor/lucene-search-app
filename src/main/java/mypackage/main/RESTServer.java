@@ -2,12 +2,10 @@ package mypackage.main;
 
 import mypackage.main.logger.ExceptionLogger;
 import org.apache.lucene.document.Document;
-import spark.Spark;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import static spark.Spark.*;
 
 public class RESTServer {
     /**
@@ -16,58 +14,26 @@ public class RESTServer {
     public static void main(String[] args) {
         LuceneApp luceneApp = new LuceneApp();
 
-        /**  Try to initialize Lucene app.  */
-        try {
-            luceneApp.initialize();
-        } catch (Exception e) {
-            ExceptionLogger.logException(e);
-            return;
-        }
+        int portNumber = 9090;
 
-        int waitToCommitDuration = 60 * 60 * 1000;
+        port(portNumber);
 
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    luceneApp.commitWritting();
-                } catch (IOException e) {
-                    ExceptionLogger.logException(e);
-                }
-            }
-        }, waitToCommitDuration);
+        System.out.println("Server is running on port " + portNumber + "!");
+        initExceptionHandler(e -> ExceptionLogger.logException(e));
 
-        int port = 9090;
-
-        Spark.port(port);
-        System.out.println("Server is running on port " + port + "!");
-        Spark.initExceptionHandler(e -> ExceptionLogger.logException(e));
-
-        RESTServer.enableCORS(
-                "*",
-                "GET,PUT,DELETE,POST,OPTIONS",
-                "Access-Control-Allow-Origin, "
-                        + "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With"
-        );
-
+        RESTServer.enableCORS();
 
         /**  Indexing document.  **/
-        Spark.post("/index-docs", (req, res) -> {
+        post("/index-docs", (req, res) -> {
             ArrayList<Document> documents = DataExtractor.extractSites(req.body());
-
-            luceneApp.addDocuments(documents);
-            luceneApp.commitWritting();
 
             return "Ok!";
         });
 
 
         /**  Search for documents.  **/
-        Spark.get("/search/:query-string", (req, res) -> {
+        get("/search/:query-string", (req, res) -> {
             String query = req.params("query-string");
-
-            System.out.println("search" + query);
 
             ArrayList<Document> documents = luceneApp.search(query);
 
@@ -76,23 +42,16 @@ public class RESTServer {
 
 
         /**  Show search suggestions  **/
-        Spark.get("/suggest/:suggest-string", (req, res) -> {
+        get("/suggest/:suggest-string", (req, res) -> {
             String suggest = req.params("suggest-string");
 
-            ArrayList<String> suggestions = luceneApp.suggest(suggest);
-
-            return DataExtractor.toResponseSuggestions(suggestions);
+            return "Ok!";
         });
 
 
         /**  Send stop signal to server.  **/
-        Spark.get("/stop", (req, res) -> {
-            // Try to commit before closing the app.
-            luceneApp.commitWritting();
-            luceneApp.close();
-
-            // Stop the server.
-            Spark.stop();
+        get("/stop", (req, res) -> {
+            stop();
             return "Server has stopped!";
         });
     }
@@ -100,12 +59,9 @@ public class RESTServer {
 
     /**
      * CORS Plugin for SparkJava.
-     * @param origin
-     * @param methods
-     * @param headers
      */
-    private static void enableCORS(final String origin, final String methods, final String headers) {
-        Spark.options("/*", (request, response) -> {
+    private static void enableCORS() {
+         before((request, response) -> {
 
             String accessControlRequestHeaders = request.headers("Access-Control-Request-Headers");
             if (accessControlRequestHeaders != null) {
@@ -117,14 +73,7 @@ public class RESTServer {
                 response.header("Access-Control-Allow-Methods", accessControlRequestMethod);
             }
 
-            return "OK";
-        });
-
-        Spark.before((request, response) -> {
-            response.header("Access-Control-Allow-Origin", origin);
-            response.header("Access-Control-Request-Method", methods);
-            response.header("Access-Control-Allow-Headers", headers);
-            // Note: this may or may not be necessary in your particular application
+            response.header("Access-Control-Allow-Origin", "*");
             response.type("application/json");
         });
     }
