@@ -1,6 +1,6 @@
 package mypackage.main;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -41,13 +41,14 @@ public class LuceneApp {
     public void writeDocuments(ArrayList<Document> documents) throws IOException {
         directory = FSDirectory.open(indexPath);
 
-        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new StandardAnalyzer());
+        IndexWriterConfig indexWriterConfig = new IndexWriterConfig(new WhitespaceAnalyzer());
         indexWriter = new IndexWriter(directory, indexWriterConfig);
 
         indexWriter.addDocuments(documents);
 
         indexWriter.commit();
         indexWriter.close();
+        directory.close();
     }
 
     public ArrayList<Document> search(String searchString) throws IOException, ParseException {
@@ -56,7 +57,7 @@ public class LuceneApp {
         indexReader = DirectoryReader.open(directory);
         searcher = new IndexSearcher(indexReader);
 
-        Query query = new SimpleQueryParser(new StandardAnalyzer(), "title").parse(searchString);
+        Query query = new SimpleQueryParser(new WhitespaceAnalyzer(), "title").parse(searchString.split(" ")[0]);
 
         TopDocs topDocs = searcher.search(query, 10);
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
@@ -68,6 +69,7 @@ public class LuceneApp {
         }
 
         indexReader.close();
+        directory.close();
 
         return documents;
     }

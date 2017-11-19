@@ -3,6 +3,7 @@ package mypackage.main;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import mypackage.main.prototype.Site;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -22,6 +23,8 @@ public class DataExtractor {
             Document doc = new Document();
             doc.add(new TextField("title", site.title, Field.Store.YES));
             doc.add(new TextField("content", site.content, Field.Store.YES));
+
+            System.out.println(mapper.writeValueAsString(site));
         }
 
         return docs;
@@ -33,16 +36,17 @@ public class DataExtractor {
 
         System.out.println(documents.size());
 
+        ArrayNode arrayNode = mapper.createArrayNode();
+
         for (Document doc : documents) {
             Site site = new Site();
 
             site.title = doc.getField("title").stringValue();
             site.content = doc.getField("content").stringValue();
-
-            System.out.println(site.title);
+            arrayNode.add(mapper.valueToTree(site));
         }
 
-        return mapper.writeValueAsString(sites);
+        return arrayNode.toString();
     }
 
     public static String toResponseSuggestions(ArrayList<String> suggestions) throws JsonProcessingException {

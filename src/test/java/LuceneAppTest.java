@@ -11,7 +11,7 @@ public class LuceneAppTest {
 
         Document document1 = new Document();
 
-        document1.add(new TextField("title", "lucene", Field.Store.YES));
+        document1.add(new TextField("title", "lucene core", Field.Store.YES));
         document1.add(new TextField("content", "lucene app", Field.Store.YES));
 
         Document document2 = new Document();
@@ -23,11 +23,18 @@ public class LuceneAppTest {
         documents.add(document1);
         documents.add(document2);
 
+//        try {
+//            luceneApp.writeDocuments(documents);
+//        } catch (IOException e) {
+//            System.out.println(e.getClass() + " : " + e.getMessage());
+//        }
+
         try {
             documents = luceneApp.search("lucene");
-            System.out.println(documents.get(0).getField("title").stringValue());
-            documents = luceneApp.search("lucene");
-            System.out.println(documents.get(0).getField("title").stringValue());
+
+            for (Document document : documents) {
+                System.out.println(document.getField("title").stringValue());
+            }
         } catch (Exception e) {
             System.out.println(e.getClass() + " : " + e.getMessage());
         }

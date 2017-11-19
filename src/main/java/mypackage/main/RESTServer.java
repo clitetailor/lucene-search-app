@@ -12,7 +12,7 @@ public class RESTServer {
      * Server main app.
      */
     public static void main(String[] args) {
-        LuceneApp luceneApp = new LuceneApp();
+        LuceneApp luceneApp = new LuceneApp("./test");
 
         int portNumber = 9090;
 
@@ -26,6 +26,8 @@ public class RESTServer {
         /**  Indexing document.  **/
         post("/index-docs", (req, res) -> {
             ArrayList<Document> documents = DataExtractor.extractSites(req.body());
+
+            luceneApp.writeDocuments(documents);
 
             return "Ok!";
         });
@@ -45,7 +47,7 @@ public class RESTServer {
         get("/suggest/:suggest-string", (req, res) -> {
             String suggest = req.params("suggest-string");
 
-            return "Ok!";
+            return "[]";
         });
 
 
