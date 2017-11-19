@@ -31,11 +31,15 @@ public class DataExtractor {
         ObjectMapper mapper = new ObjectMapper();
         ArrayList<Site> sites = new ArrayList<Site>();
 
+        System.out.println(documents.size());
+
         for (Document doc : documents) {
             Site site = new Site();
 
             site.title = doc.getField("title").stringValue();
             site.content = doc.getField("content").stringValue();
+
+            System.out.println(site.title);
         }
 
         return mapper.writeValueAsString(sites);
@@ -43,6 +47,12 @@ public class DataExtractor {
 
     public static String toResponseSuggestions(ArrayList<String> suggestions) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
+
+        System.out.println(suggestions.size());
+
+        for (String suggest : suggestions) {
+            System.out.println(suggest);
+        }
 
         return mapper.writeValueAsString(suggestions);
     }

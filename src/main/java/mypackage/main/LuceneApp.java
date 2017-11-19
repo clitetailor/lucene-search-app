@@ -31,6 +31,7 @@ public class LuceneApp {
 
     public LuceneApp(String dir) {
         indexPath = FileSystems.getDefault().getPath(dir);
+        System.out.println(indexPath.toString());
     }
 
     /**

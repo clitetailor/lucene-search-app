@@ -38,7 +38,10 @@ public class RESTServer {
             }
         }, waitToCommitDuration);
 
-        Spark.port(9090);
+        int port = 9090;
+
+        Spark.port(port);
+        System.out.println("Server is running on port " + port + "!");
         Spark.initExceptionHandler(e -> ExceptionLogger.logException(e));
 
         RESTServer.enableCORS(
@@ -50,7 +53,7 @@ public class RESTServer {
 
 
         /**  Indexing document.  **/
-        Spark.post("/index", (req, res) -> {
+        Spark.post("/index-docs", (req, res) -> {
             ArrayList<Document> documents = DataExtractor.extractSites(req.body());
 
             luceneApp.addDocuments(documents);
@@ -63,6 +66,8 @@ public class RESTServer {
         /**  Search for documents.  **/
         Spark.get("/search/:query-string", (req, res) -> {
             String query = req.params("query-string");
+
+            System.out.println("search" + query);
 
             ArrayList<Document> documents = luceneApp.search(query);
 
@@ -81,7 +86,7 @@ public class RESTServer {
 
 
         /**  Send stop signal to server.  **/
-        Spark.options("/stop", (req, res) -> {
+        Spark.get("/stop", (req, res) -> {
             // Try to commit before closing the app.
             luceneApp.commitWritting();
             luceneApp.close();
