@@ -24,7 +24,7 @@ public class DataExtractor {
             doc.add(new TextField("title", site.title, Field.Store.YES));
             doc.add(new TextField("content", site.content, Field.Store.YES));
 
-            System.out.println(mapper.writeValueAsString(site));
+            docs.add(doc);
         }
 
         return docs;

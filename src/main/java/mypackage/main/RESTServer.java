@@ -12,7 +12,7 @@ public class RESTServer {
      * Server main app.
      */
     public static void main(String[] args) {
-        LuceneApp luceneApp = new LuceneApp("./test");
+        LuceneApp luceneApp = new LuceneApp("./index");
 
         int portNumber = 9090;
 

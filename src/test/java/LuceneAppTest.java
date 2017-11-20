@@ -3,6 +3,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class LuceneAppTest {
@@ -23,11 +24,11 @@ public class LuceneAppTest {
         documents.add(document1);
         documents.add(document2);
 
-//        try {
-//            luceneApp.writeDocuments(documents);
-//        } catch (IOException e) {
-//            System.out.println(e.getClass() + " : " + e.getMessage());
-//        }
+        try {
+            luceneApp.writeDocuments(documents);
+        } catch (IOException e) {
+            System.out.println(e.getClass() + " : " + e.getMessage());
+        }
 
         try {
             documents = luceneApp.search("lucene");
