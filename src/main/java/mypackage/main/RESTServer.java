@@ -3,6 +3,7 @@ package mypackage.main;
 import mypackage.main.logger.ExceptionLogger;
 import org.apache.lucene.document.Document;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import static spark.Spark.*;
@@ -12,7 +13,15 @@ public class RESTServer {
      * Server main app.
      */
     public static void main(String[] args) {
-        LuceneApp luceneApp = new LuceneApp("./index");
+        LuceneApp luceneApp = null;
+        try {
+            luceneApp = new LuceneApp("./index");
+        } catch (IOException e) {
+            ExceptionLogger.logException(e);
+            return;
+        }
+
+        final LuceneApp finalLuceneApp = luceneApp;
 
         int portNumber = 9090;
 
@@ -27,7 +36,7 @@ public class RESTServer {
         post("/index-docs", (req, res) -> {
             ArrayList<Document> documents = DataExtractor.extractSites(req.body());
 
-            luceneApp.writeDocuments(documents);
+            finalLuceneApp.writeDocuments(documents);
 
             return "Ok!";
         });
@@ -37,7 +46,7 @@ public class RESTServer {
         get("/search/:query-string", (req, res) -> {
             String query = req.params("query-string");
 
-            ArrayList<Document> documents = luceneApp.search(query);
+            ArrayList<Document> documents = finalLuceneApp.search(query);
 
             return DataExtractor.toResponseString(documents);
         });
@@ -45,9 +54,10 @@ public class RESTServer {
 
         /**  Show search suggestions  **/
         get("/suggest/:suggest-string", (req, res) -> {
-            String suggest = req.params("suggest-string");
+            String sourceString = req.params("suggest-string");
 
-            return "[]";
+            ArrayList<String> suggestions = finalLuceneApp.suggest(sourceString);
+            return DataExtractor.toResponseSuggestions(suggestions);
         });
 
 

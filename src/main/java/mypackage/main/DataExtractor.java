@@ -52,12 +52,11 @@ public class DataExtractor {
     public static String toResponseSuggestions(ArrayList<String> suggestions) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
 
-        System.out.println(suggestions.size());
+        ArrayNode arrayNode = mapper.createArrayNode();
 
-        for (String suggest : suggestions) {
-            System.out.println(suggest);
+        for (String suggestion : suggestions) {
+            arrayNode.add(suggestion);
         }
-
-        return mapper.writeValueAsString(suggestions);
+        return arrayNode.toString();
     }
 }
