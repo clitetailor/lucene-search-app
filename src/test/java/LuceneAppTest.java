@@ -1,4 +1,5 @@
 import mypackage.main.LuceneApp;
+import mypackage.main.prototype.Site;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
@@ -36,10 +37,12 @@ public class LuceneAppTest {
         }
 
         try {
-            documents = luceneApp.search("lucene");
+            ArrayList<Site> sites = luceneApp.search("lucene");
 
-            for (Document document : documents) {
-                System.out.println(document.getField("title").stringValue());
+            for (Site site : sites) {
+                System.out.println("title: " + site.title);
+                System.out.println("content: " + site.content);
+                System.out.println("========================");
             }
         } catch (Exception e) {
             System.out.println(e.getClass() + " : " + e.getMessage());
