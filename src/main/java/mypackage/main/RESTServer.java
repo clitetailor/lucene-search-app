@@ -1,6 +1,7 @@
 package mypackage.main;
 
 import mypackage.main.logger.ExceptionLogger;
+import mypackage.main.prototype.Site;
 import org.apache.lucene.document.Document;
 
 import java.io.IOException;
@@ -46,9 +47,9 @@ public class RESTServer {
         get("/search/:query-string", (req, res) -> {
             String query = req.params("query-string");
 
-            ArrayList<Document> documents = finalLuceneApp.search(query);
+            ArrayList<Site> sites = finalLuceneApp.search(query);
 
-            return DataExtractor.toResponseString(documents);
+            return DataExtractor.toResponseString(sites);
         });
 
 
@@ -58,6 +59,17 @@ public class RESTServer {
 
             ArrayList<String> suggestions = finalLuceneApp.suggest(sourceString);
             return DataExtractor.toResponseSuggestions(suggestions);
+        });
+
+
+        /**  Get document by id  **/
+        get("document/:doc-id", (req, res) -> {
+           String idString = req.params("doc-id");
+
+           Integer docId = Integer.valueOf(idString);
+           Site site = finalLuceneApp.getSite(docId);
+
+           return DataExtractor.toResponseString(site);
         });
 
 

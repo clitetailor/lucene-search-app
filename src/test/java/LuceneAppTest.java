@@ -8,7 +8,12 @@ import java.util.ArrayList;
 
 public class LuceneAppTest {
     public static void main(String[] args) {
-        LuceneApp luceneApp = new LuceneApp("./test");
+        LuceneApp luceneApp = null;
+        try {
+            luceneApp = new LuceneApp("./test");
+        } catch (IOException e) {
+            System.out.println(e.getClass() + " : " + e.getMessage());
+        }
 
         Document document1 = new Document();
 

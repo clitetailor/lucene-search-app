@@ -14,4 +14,7 @@ public class Site {
 
     @JsonProperty("content")
     public String content;
+
+    @JsonProperty("id")
+    public int id;
 }

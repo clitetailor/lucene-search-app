@@ -1,6 +1,7 @@
 package mypackage.main;
 
 import mypackage.main.lucene.SearchSuggester;
+import mypackage.main.prototype.Site;
 import org.apache.lucene.analysis.core.WhitespaceAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
@@ -15,8 +16,8 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class LuceneApp {
@@ -35,7 +36,7 @@ public class LuceneApp {
     }
 
     public LuceneApp(String dir) throws IOException {
-        indexPath = FileSystems.getDefault().getPath(dir);
+        indexPath = Paths.get(dir);
         suggester = new SearchSuggester(indexPath);
 
         suggester.load();
@@ -53,11 +54,12 @@ public class LuceneApp {
             suggester.add(document.getField("title").stringValue());
         }
 
+        suggester.store();
         indexWriter.commit();
         indexWriter.close();
     }
 
-    public ArrayList<Document> search(String searchString) throws IOException, ParseException {
+    public ArrayList<Site> search(String searchString) throws IOException, ParseException {
         Directory directory = FSDirectory.open(indexPath);
 
         indexReader = DirectoryReader.open(directory);
@@ -73,18 +75,40 @@ public class LuceneApp {
         TopDocs topDocs = searcher.search(booleanQuery, 10);
         ScoreDoc[] scoreDocs = topDocs.scoreDocs;
 
-        ArrayList<Document> documents = new ArrayList<>();
+        ArrayList<Site> sites = new ArrayList<>();
         for (ScoreDoc scoreDoc : scoreDocs) {
             Document document = searcher.doc(scoreDoc.doc);
-            documents.add(document);
+
+            Site site = new Site();
+            site.id = scoreDoc.doc;
+            site.title = document.getField("title").stringValue();
+            site.content = document.getField("content").stringValue();
+
+            sites.add(site);
         }
 
         indexReader.close();
 
-        return documents;
+        return sites;
     }
 
     public ArrayList<String> suggest(String string) throws UnsupportedEncodingException {
         return suggester.suggest(string);
+    }
+
+    public Site getSite(int docId) throws IOException {
+        Directory directory = FSDirectory.open(indexPath);
+
+        indexReader = DirectoryReader.open(directory);
+        searcher = new IndexSearcher(indexReader);
+
+        Document document = searcher.doc(docId);
+
+        Site site = new Site();
+        site.id = docId;
+        site.title = document.getField("title").stringValue();
+        site.content = document.getField("content").stringValue();
+
+        return site;
     }
 }

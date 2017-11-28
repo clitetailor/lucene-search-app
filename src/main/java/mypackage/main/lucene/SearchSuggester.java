@@ -2,7 +2,6 @@ package mypackage.main.lucene;
 
 import org.apache.lucene.search.suggest.Lookup;
 import org.apache.lucene.search.suggest.tst.TSTLookup;
-import org.apache.lucene.store.Directory;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -11,7 +10,6 @@ import java.util.List;
 
 public class SearchSuggester {
     Path indexPath;
-    Directory directory;
     TSTLookup tstLookup;
 
     public SearchSuggester(Path indexPath) throws IOException {
@@ -31,6 +29,8 @@ public class SearchSuggester {
             suggestions.add(result.key.toString());
         }
 
+        System.out.println(lookupResults.size());
+
         return suggestions;
     }
 
@@ -39,6 +39,8 @@ public class SearchSuggester {
         FileOutputStream outputStream = new FileOutputStream(file);
 
         tstLookup.store(outputStream);
+
+        outputStream.close();
     }
 
     public void load() throws IOException {
@@ -48,6 +50,8 @@ public class SearchSuggester {
             FileInputStream inputStream = new FileInputStream(file);
 
             tstLookup.load(inputStream);
+
+            inputStream.close();
         }
     }
 }

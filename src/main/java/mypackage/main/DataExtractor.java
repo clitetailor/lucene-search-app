@@ -30,23 +30,21 @@ public class DataExtractor {
         return docs;
     }
 
-    public static String toResponseString(ArrayList<Document> documents) throws JsonProcessingException {
+    public static String toResponseString(ArrayList<Site> sites) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        ArrayList<Site> sites = new ArrayList<Site>();
-
-        System.out.println(documents.size());
-
         ArrayNode arrayNode = mapper.createArrayNode();
 
-        for (Document doc : documents) {
-            Site site = new Site();
-
-            site.title = doc.getField("title").stringValue();
-            site.content = doc.getField("content").stringValue();
+        for (Site site : sites) {
             arrayNode.add(mapper.valueToTree(site));
         }
 
         return arrayNode.toString();
+    }
+
+    public static String toResponseString(Site site) throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+
+        return mapper.writeValueAsString(site);
     }
 
     public static String toResponseSuggestions(ArrayList<String> suggestions) throws JsonProcessingException {
