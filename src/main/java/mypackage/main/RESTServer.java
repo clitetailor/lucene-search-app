@@ -69,7 +69,10 @@ public class RESTServer {
            Integer docId = Integer.valueOf(idString);
            Site site = finalLuceneApp.getSite(docId);
 
-           return DataExtractor.toResponseString(site);
+           String result = DataExtractor.toResponseString(site);
+           System.out.println(result);
+
+           return result;
         });
 
 
